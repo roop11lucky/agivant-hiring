@@ -17,16 +17,17 @@ from googleapiclient.http import MediaIoBaseUpload
 # -----------------------------
 st.set_page_config(
     page_title="Agivant Hiring Campaign",
-    page_icon="📄",
+    page_icon="icon.jpeg",
     layout="centered",
 )
+
 
 # -----------------------------
 # LOGO + HEADER
 # -----------------------------
 logo_path = Path("logo.png")
 if logo_path.exists():
-    st.image(str(logo_path), width=220)
+    st.image(str(logo_path), width=500)
 
 st.title("Agivant Hiring Campaign")
 st.caption("Please complete the form below. Fields marked with * are mandatory.")

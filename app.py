@@ -193,6 +193,8 @@ with st.form("candidate_form", clear_on_submit=False):
     notice_period = ""
 
     if experience_type == "Experienced":
+        st.markdown("#### Experience Details")
+
         total_experience = st.text_input(
             "Total Experience",
             placeholder="Example: 3 years 6 months",
@@ -203,8 +205,13 @@ with st.form("candidate_form", clear_on_submit=False):
             placeholder="Example: 2 years",
         )
 
-        current_company = st.text_input("Current Company")
-        current_designation = st.text_input("Current Designation")
+        current_company = st.text_input(
+            "Current Company"
+        )
+
+        current_designation = st.text_input(
+            "Current Designation"
+        )
 
         notice_period = st.selectbox(
             "Notice Period",

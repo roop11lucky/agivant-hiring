@@ -85,12 +85,11 @@ def validate_pan(value):
     return bool(re.fullmatch(r"[A-Z]{5}[0-9]{4}[A-Z]", value.strip().upper()))
 
 
-def upload_resume_to_drive(uploaded_file, candidate_id, full_name):
+def upload_resume_to_drive(uploaded_file, candidate_id):
     _, drive_service = get_google_clients()
 
-    safe_name = re.sub(r"[^A-Za-z0-9._-]+", "_", full_name.strip())
     original_ext = Path(uploaded_file.name).suffix.lower()
-    filename = f"{candidate_id}_{safe_name}{original_ext}"
+    filename = f"{candidate_id}{original_ext}"
 
     file_metadata = {
         "name": filename,
@@ -279,7 +278,6 @@ if submitted:
             resume_link = upload_resume_to_drive(
                 resume,
                 candidate_id,
-                full_name,
             )
 
             row = [

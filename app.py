@@ -355,7 +355,9 @@ if submitted:
                 unsafe_allow_html=True,
             )
 
-        except Exception:
-            st.error(
-                "We could not submit your application. Please contact the recruitment team."
-            )
+        except Exception as e:
+    st.error(
+        "We could not submit your application. Please contact the recruitment team."
+    )
+
+    st.error(f"Technical Error: {type(e).__name__}: {e}")

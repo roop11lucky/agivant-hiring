@@ -356,8 +356,8 @@ if submitted:
             )
 
         except Exception as e:
-    st.error(
+            st.error(
         "We could not submit your application. Please contact the recruitment team."
     )
 
-    st.error(f"Technical Error: {type(e).__name__}: {e}")
+            st.error(f"Technical Error: {type(e).__name__}: {e}")

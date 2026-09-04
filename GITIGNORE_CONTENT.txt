@@ -1,0 +1,8 @@
+# Rename this file to .gitignore if using Git locally.
+
+.streamlit/secrets.toml
+secrets.toml
+.env
+__pycache__/
+*.pyc
+.DS_Store

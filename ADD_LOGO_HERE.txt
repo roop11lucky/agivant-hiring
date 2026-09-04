@@ -1,0 +1,1 @@
+Add your company logo to this folder and name it exactly: logo.png

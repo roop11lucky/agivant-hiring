@@ -1,15 +1,12 @@
+import base64
 import re
 import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
-from io import BytesIO
 
-import gspread
+import requests
 import streamlit as st
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
 
 
 # -----------------------------
@@ -33,44 +30,9 @@ st.caption("Please complete the form below. Fields marked with * are mandatory."
 
 
 # -----------------------------
-# GOOGLE CONNECTION
-# -----------------------------
-@st.cache_resource
-def get_google_clients():
-    credentials_dict = dict(st.secrets["gcp_service_account"])
-
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-
-    credentials = Credentials.from_service_account_info(
-        credentials_dict,
-        scopes=scopes,
-    )
-
-    gc = gspread.authorize(credentials)
-    drive_service = build(
-        "drive",
-        "v3",
-        credentials=credentials,
-        cache_discovery=False,
-    )
-
-    return gc, drive_service
-
-
-def get_worksheet():
-    gc, _ = get_google_clients()
-    spreadsheet = gc.open_by_key(st.secrets["google"]["spreadsheet_id"])
-    return spreadsheet.worksheet(st.secrets["google"]["worksheet_name"])
-
-
-# -----------------------------
 # HELPERS
 # -----------------------------
 def generate_candidate_id():
-    # Example: AGI-260904-A1B2C3
     date_part = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%y%m%d")
     random_part = uuid.uuid4().hex[:6].upper()
     return f"AGI-{date_part}-{random_part}"
@@ -93,45 +55,23 @@ def validate_pan(value):
     return bool(re.fullmatch(r"[A-Z]{5}[0-9]{4}[A-Z]", value.strip().upper()))
 
 
-def upload_resume_to_drive(uploaded_file, candidate_id):
-    _, drive_service = get_google_clients()
-
-    original_ext = Path(uploaded_file.name).suffix.lower()
-    filename = f"{candidate_id}{original_ext}"
-
-    file_metadata = {
-        "name": filename,
-        "parents": [st.secrets["google"]["drive_folder_id"]],
-    }
-
-    media = MediaIoBaseUpload(
-        BytesIO(uploaded_file.getvalue()),
-        mimetype=uploaded_file.type or "application/octet-stream",
-        resumable=False,
+def submit_to_google_apps_script(payload):
+    response = requests.post(
+        st.secrets["google"]["apps_script_url"],
+        json=payload,
+        timeout=60,
     )
+    response.raise_for_status()
+    result = response.json()
 
-    created = drive_service.files().create(
-        body=file_metadata,
-        media_body=media,
-        fields="id,webViewLink",
-    ).execute()
+    if not result.get("success"):
+        raise Exception(result.get("message", "Submission failed."))
 
-    return created["webViewLink"]
-
-
-def append_candidate(row):
-    worksheet = get_worksheet()
-    worksheet.append_row(row, value_input_option="USER_ENTERED")
+    return result
 
 
 # -----------------------------
 # FORM
-# NOTE: st.form() is intentionally NOT used here. Widgets inside a
-# form only rerun the script on submit, so a radio button placed
-# inside a form (anywhere in it) can never conditionally reveal
-# other fields live. Using plain widgets + a regular st.button lets
-# the "Fresher / Experienced" radio live in its original position
-# (right after Education) while still reacting immediately.
 # -----------------------------
 st.subheader("Personal Details")
 
@@ -158,14 +98,7 @@ st.subheader("Education")
 
 highest_qualification = st.selectbox(
     "Highest Qualification *",
-    [
-        "Select",
-        "Diploma",
-        "Bachelor's Degree",
-        "Master's Degree",
-        "PhD",
-        "Other",
-    ],
+    ["Select", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD", "Other"],
 )
 
 institute = st.text_input("Institute *")
@@ -211,13 +144,8 @@ if experience_type == "Experienced":
         placeholder="Example: 2 years",
     )
 
-    current_company = st.text_input(
-        "Current Company"
-    )
-
-    current_designation = st.text_input(
-        "Current Designation"
-    )
+    current_company = st.text_input("Current Company")
+    current_designation = st.text_input("Current Designation")
 
     notice_period = st.selectbox(
         "Notice Period",
@@ -299,6 +227,7 @@ if submitted:
     if errors:
         for error in errors:
             st.error(error)
+
     else:
         try:
             candidate_id = generate_candidate_id()
@@ -307,35 +236,39 @@ if submitted:
                 ZoneInfo("Asia/Kolkata")
             ).strftime("%Y-%m-%d %H:%M:%S IST")
 
-            resume_link = upload_resume_to_drive(
-                resume,
-                candidate_id,
-            )
+            original_ext = Path(resume.name).suffix.lower()
+            resume_name = f"{candidate_id}{original_ext}"
 
-            row = [
-                candidate_id,
-                timestamp,
-                full_name.strip(),
-                mobile.strip(),
-                email.strip().lower(),
-                re.sub(r"\s+", "", aadhaar),
-                pan.strip().upper(),
-                current_city.strip(),
-                highest_qualification,
-                institute.strip(),
-                int(graduation_year),
-                cgpa_percentage.strip(),
-                experience_type,
-                total_experience.strip(),
-                relevant_experience.strip(),
-                current_company.strip(),
-                current_designation.strip(),
-                "" if notice_period == "Select" else notice_period,
-                primary_skill.strip(),
-                resume_link,
-            ]
+            resume_base64 = base64.b64encode(
+                resume.getvalue()
+            ).decode("utf-8")
 
-            append_candidate(row)
+            payload = {
+                "candidate_id": candidate_id,
+                "timestamp": timestamp,
+                "full_name": full_name.strip(),
+                "mobile": mobile.strip(),
+                "email": email.strip().lower(),
+                "aadhaar": re.sub(r"\s+", "", aadhaar),
+                "pan": pan.strip().upper(),
+                "current_city": current_city.strip(),
+                "highest_qualification": highest_qualification,
+                "institute": institute.strip(),
+                "graduation_year": int(graduation_year),
+                "cgpa_percentage": cgpa_percentage.strip(),
+                "experience_type": experience_type,
+                "total_experience": total_experience.strip(),
+                "relevant_experience": relevant_experience.strip(),
+                "current_company": current_company.strip(),
+                "current_designation": current_designation.strip(),
+                "notice_period": "" if notice_period == "Select" else notice_period,
+                "primary_skill": primary_skill.strip(),
+                "resume_name": resume_name,
+                "resume_type": resume.type or "application/octet-stream",
+                "resume_base64": resume_base64,
+            }
+
+            submit_to_google_apps_script(payload)
 
             st.success("Application submitted successfully.")
             st.info(f"Candidate ID: {candidate_id}")
@@ -343,7 +276,7 @@ if submitted:
             company_website = st.secrets["app"]["company_website"]
 
             st.markdown(
-                f"""
+                f'''
                 <meta http-equiv="refresh" content="2; url={company_website}">
                 <p>Redirecting to the company website...</p>
                 <p>
@@ -351,13 +284,12 @@ if submitted:
                         Click here if you are not redirected automatically.
                     </a>
                 </p>
-                """,
+                ''',
                 unsafe_allow_html=True,
             )
 
         except Exception as e:
             st.error(
-        "We could not submit your application. Please contact the recruitment team."
-    )
-
+                "We could not submit your application. Please contact the recruitment team."
+            )
             st.error(f"Technical Error: {type(e).__name__}: {e}")

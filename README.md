@@ -1,35 +1,11 @@
-# Agivant Hiring Campaign - Manual GitHub Upload Version
+# Agivant Hiring Campaign - Apps Script Version
 
-Upload these visible files to your GitHub repository:
+1. Open script.google.com and create a new Apps Script project.
+2. Paste Code.gs and deploy as a Web App.
+3. Execute as: Me.
+4. Who has access: Anyone.
+5. Copy the /exec URL.
+6. In Streamlit Cloud -> App Settings -> Secrets, paste the content from STREAMLIT_SECRETS.txt and replace the Apps Script URL.
+7. Upload app.py, requirements.txt, logo.png and icon.jpeg to GitHub.
 
-- `app.py`
-- `requirements.txt`
-- `README.md`
-- `STREAMLIT_SECRETS_SETUP.txt`
-- `logo.png` (you add this)
-- `ADD_LOGO_HERE.txt` (optional)
-- `GITIGNORE_CONTENT.txt` (reference only)
-
-You do NOT need to upload `.streamlit/secrets.toml`.
-
-The app reads credentials from `st.secrets`, and on Streamlit Community Cloud
-you configure those from:
-
-**App Settings -> Secrets**
-
-See `STREAMLIT_SECRETS_SETUP.txt` for the exact template.
-
-Configured resources:
-
-- Spreadsheet ID: `1QreeVlM379CLvLCoDHAZunzp9tIwwPkQ9LrQUK0ukgE`
-- Worksheet: `Sheet1`
-- Resume Drive Folder ID: `1Fl0r5cZFPeWL6Fjhz9uLh2vTuzXfaJV9`
-
-Resume files are renamed automatically using Candidate ID, for example:
-
-- `AGI-260904-A1B2C3.pdf`
-- `AGI-260904-A1B2C3.docx`
-
-Add your logo in the repository root as:
-
-`logo.png`
+This version does not use Google service-account credentials in Streamlit.

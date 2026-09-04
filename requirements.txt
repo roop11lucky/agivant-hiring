@@ -1,4 +1,2 @@
 streamlit>=1.40
-gspread>=6.1
-google-auth>=2.30
-google-api-python-client>=2.140
+requests>=2.31

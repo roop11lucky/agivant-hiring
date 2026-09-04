@@ -1,0 +1,64 @@
+# Hiring Campaign Streamlit App
+
+## Google Sheet columns
+
+Create a worksheet named `Candidates` with the following headers in Row 1:
+
+1. Candidate ID
+2. Timestamp
+3. Full Name
+4. Mobile Number
+5. Email
+6. Aadhaar
+7. PAN
+8. Current City
+9. Highest Qualification
+10. Institute
+11. Graduation Year
+12. CGPA / Percentage
+13. Fresher / Experienced
+14. Total Experience
+15. Relevant Experience
+16. Current Company
+17. Current Designation
+18. Notice Period
+19. Primary Skill
+20. Resume Link
+
+## Local setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Copy:
+
+`.streamlit/secrets.example.toml`
+
+to:
+
+`.streamlit/secrets.toml`
+
+Fill in the actual Google service account, spreadsheet, Drive folder, and company website values.
+
+Then run:
+
+```bash
+streamlit run app.py
+```
+
+## Google setup
+
+1. Create a Google Cloud project.
+2. Enable Google Sheets API.
+3. Enable Google Drive API.
+4. Create a service account.
+5. Create a JSON key for the service account.
+6. Create a private Google Sheet.
+7. Create a private Google Drive folder for resumes.
+8. Share BOTH the Google Sheet and Drive folder with the service account email as Editor.
+9. Put the corresponding IDs and credentials into `.streamlit/secrets.toml`.
+
+Do not commit `.streamlit/secrets.toml` to GitHub.

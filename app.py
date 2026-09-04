@@ -2,25 +2,33 @@ import re
 import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from pathlib import Path
+from io import BytesIO
 
 import gspread
 import streamlit as st
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
-from io import BytesIO
 
 
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
 st.set_page_config(
-    page_title="Hiring Campaign Registration",
+    page_title="Agivant Hiring Campaign",
     page_icon="📄",
     layout="centered",
 )
 
-st.title("Hiring Campaign Registration")
+# -----------------------------
+# LOGO + HEADER
+# -----------------------------
+logo_path = Path("logo.png")
+if logo_path.exists():
+    st.image(str(logo_path), width=220)
+
+st.title("Agivant Hiring Campaign")
 st.caption("Please complete the form below. Fields marked with * are mandatory.")
 
 
@@ -55,17 +63,17 @@ def get_google_clients():
 def get_worksheet():
     gc, _ = get_google_clients()
     spreadsheet = gc.open_by_key(st.secrets["google"]["spreadsheet_id"])
-    return spreadsheet.worksheet(st.secrets["google"].get("worksheet_name", "Candidates"))
+    return spreadsheet.worksheet(st.secrets["google"]["worksheet_name"])
 
 
 # -----------------------------
 # HELPERS
 # -----------------------------
 def generate_candidate_id():
-    # Example: HC-260904-A1B2C3
-    date_part = datetime.now().strftime("%y%m%d")
+    # Example: AGI-260904-A1B2C3
+    date_part = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%y%m%d")
     random_part = uuid.uuid4().hex[:6].upper()
-    return f"HC-{date_part}-{random_part}"
+    return f"AGI-{date_part}-{random_part}"
 
 
 def validate_mobile(value):
@@ -125,24 +133,34 @@ with st.form("candidate_form", clear_on_submit=False):
     full_name = st.text_input("Full Name *")
     mobile = st.text_input("Mobile Number *", max_chars=10)
     email = st.text_input("Email *")
+
     aadhaar = st.text_input(
         "Aadhaar Number *",
         max_chars=12,
         type="password",
         help="Enter your 12-digit Aadhaar number.",
     )
+
     pan = st.text_input(
         "PAN *",
         max_chars=10,
         help="Example: ABCDE1234F",
     )
+
     current_city = st.text_input("Current City *")
 
     st.subheader("Education")
 
     highest_qualification = st.selectbox(
         "Highest Qualification *",
-        ["Select", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD", "Other"],
+        [
+            "Select",
+            "Diploma",
+            "Bachelor's Degree",
+            "Master's Degree",
+            "PhD",
+            "Other",
+        ],
     )
 
     institute = st.text_input("Institute *")
@@ -151,7 +169,7 @@ with st.form("candidate_form", clear_on_submit=False):
         "Graduation Year *",
         min_value=1980,
         max_value=2100,
-        value=datetime.now().year,
+        value=datetime.now(ZoneInfo("Asia/Kolkata")).year,
         step=1,
     )
 
@@ -271,9 +289,10 @@ if submitted:
     else:
         try:
             candidate_id = generate_candidate_id()
-            timestamp = datetime.now(ZoneInfo("Asia/Kolkata")).strftime(
-                "%Y-%m-%d %H:%M:%S IST"
-            )
+
+            timestamp = datetime.now(
+                ZoneInfo("Asia/Kolkata")
+            ).strftime("%Y-%m-%d %H:%M:%S IST")
 
             resume_link = upload_resume_to_drive(
                 resume,

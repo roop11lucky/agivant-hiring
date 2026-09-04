@@ -344,9 +344,13 @@ if submitted:
 
             st.markdown(
                 f"""
-                <meta http-equiv="refresh" content="4; url={company_website}">
-                <p>You will be redirected to the company website shortly.</p>
-                <p><a href="{company_website}">Click here if you are not redirected.</a></p>
+                <meta http-equiv="refresh" content="2; url={company_website}">
+                <p>Redirecting to the company website...</p>
+                <p>
+                    <a href="{company_website}">
+                        Click here if you are not redirected automatically.
+                    </a>
+                </p>
                 """,
                 unsafe_allow_html=True,
             )

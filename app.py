@@ -125,14 +125,64 @@ def append_candidate(row):
 
 
 # -----------------------------
-# EXPERIENCE TYPE
-# (kept OUTSIDE the form on purpose: widgets inside st.form() do not
-#  trigger a rerun until the form is submitted, so a radio button
-#  inside the form can't conditionally reveal/hide other fields in
-#  real time. Placing it outside the form makes it rerun the script
-#  immediately on change, so the extra fields appear as soon as the
-#  user picks "Experienced".)
+# FORM
+# NOTE: st.form() is intentionally NOT used here. Widgets inside a
+# form only rerun the script on submit, so a radio button placed
+# inside a form (anywhere in it) can never conditionally reveal
+# other fields live. Using plain widgets + a regular st.button lets
+# the "Fresher / Experienced" radio live in its original position
+# (right after Education) while still reacting immediately.
 # -----------------------------
+st.subheader("Personal Details")
+
+full_name = st.text_input("Full Name *")
+mobile = st.text_input("Mobile Number *", max_chars=10)
+email = st.text_input("Email *")
+
+aadhaar = st.text_input(
+    "Aadhaar Number *",
+    max_chars=12,
+    type="password",
+    help="Enter your 12-digit Aadhaar number.",
+)
+
+pan = st.text_input(
+    "PAN *",
+    max_chars=10,
+    help="Example: ABCDE1234F",
+)
+
+current_city = st.text_input("Current City *")
+
+st.subheader("Education")
+
+highest_qualification = st.selectbox(
+    "Highest Qualification *",
+    [
+        "Select",
+        "Diploma",
+        "Bachelor's Degree",
+        "Master's Degree",
+        "PhD",
+        "Other",
+    ],
+)
+
+institute = st.text_input("Institute *")
+
+graduation_year = st.number_input(
+    "Graduation Year *",
+    min_value=1980,
+    max_value=2100,
+    value=datetime.now(ZoneInfo("Asia/Kolkata")).year,
+    step=1,
+)
+
+cgpa_percentage = st.text_input(
+    "CGPA / Percentage *",
+    placeholder="Example: 8.2 CGPA or 78%",
+)
+
 st.subheader("Professional Details")
 
 experience_type = st.radio(
@@ -142,123 +192,66 @@ experience_type = st.radio(
     key="experience_type",
 )
 
+total_experience = ""
+relevant_experience = ""
+current_company = ""
+current_designation = ""
+notice_period = ""
 
-# -----------------------------
-# FORM
-# -----------------------------
-with st.form("candidate_form", clear_on_submit=False):
-    st.subheader("Personal Details")
+if experience_type == "Experienced":
+    st.markdown("#### Experience Details")
 
-    full_name = st.text_input("Full Name *")
-    mobile = st.text_input("Mobile Number *", max_chars=10)
-    email = st.text_input("Email *")
-
-    aadhaar = st.text_input(
-        "Aadhaar Number *",
-        max_chars=12,
-        type="password",
-        help="Enter your 12-digit Aadhaar number.",
+    total_experience = st.text_input(
+        "Total Experience",
+        placeholder="Example: 3 years 6 months",
     )
 
-    pan = st.text_input(
-        "PAN *",
-        max_chars=10,
-        help="Example: ABCDE1234F",
+    relevant_experience = st.text_input(
+        "Relevant Experience",
+        placeholder="Example: 2 years",
     )
 
-    current_city = st.text_input("Current City *")
+    current_company = st.text_input(
+        "Current Company"
+    )
 
-    st.subheader("Education")
+    current_designation = st.text_input(
+        "Current Designation"
+    )
 
-    highest_qualification = st.selectbox(
-        "Highest Qualification *",
+    notice_period = st.selectbox(
+        "Notice Period",
         [
             "Select",
-            "Diploma",
-            "Bachelor's Degree",
-            "Master's Degree",
-            "PhD",
-            "Other",
+            "Immediate",
+            "15 Days",
+            "30 Days",
+            "45 Days",
+            "60 Days",
+            "90 Days",
+            "More than 90 Days",
         ],
     )
 
-    institute = st.text_input("Institute *")
+primary_skill = st.text_input(
+    "Primary Skill *",
+    placeholder="Example: Java, Python, Data Engineering",
+)
 
-    graduation_year = st.number_input(
-        "Graduation Year *",
-        min_value=1980,
-        max_value=2100,
-        value=datetime.now(ZoneInfo("Asia/Kolkata")).year,
-        step=1,
-    )
+resume = st.file_uploader(
+    "Resume *",
+    type=["pdf", "doc", "docx"],
+    help="Accepted formats: PDF, DOC, DOCX",
+)
 
-    cgpa_percentage = st.text_input(
-        "CGPA / Percentage *",
-        placeholder="Example: 8.2 CGPA or 78%",
-    )
+consent = st.checkbox(
+    "I confirm that the information provided is correct and may be used for recruitment purposes. *"
+)
 
-    # Experience-related fields (conditionally shown based on the
-    # experience_type value chosen OUTSIDE the form above)
-    total_experience = ""
-    relevant_experience = ""
-    current_company = ""
-    current_designation = ""
-    notice_period = ""
-
-    if experience_type == "Experienced":
-        st.markdown("#### Experience Details")
-
-        total_experience = st.text_input(
-            "Total Experience",
-            placeholder="Example: 3 years 6 months",
-        )
-
-        relevant_experience = st.text_input(
-            "Relevant Experience",
-            placeholder="Example: 2 years",
-        )
-
-        current_company = st.text_input(
-            "Current Company"
-        )
-
-        current_designation = st.text_input(
-            "Current Designation"
-        )
-
-        notice_period = st.selectbox(
-            "Notice Period",
-            [
-                "Select",
-                "Immediate",
-                "15 Days",
-                "30 Days",
-                "45 Days",
-                "60 Days",
-                "90 Days",
-                "More than 90 Days",
-            ],
-        )
-
-    primary_skill = st.text_input(
-        "Primary Skill *",
-        placeholder="Example: Java, Python, Data Engineering",
-    )
-
-    resume = st.file_uploader(
-        "Resume *",
-        type=["pdf", "doc", "docx"],
-        help="Accepted formats: PDF, DOC, DOCX",
-    )
-
-    consent = st.checkbox(
-        "I confirm that the information provided is correct and may be used for recruitment purposes. *"
-    )
-
-    submitted = st.form_submit_button(
-        "Submit Application",
-        use_container_width=True,
-    )
+submitted = st.button(
+    "Submit Application",
+    use_container_width=True,
+)
 
 
 # -----------------------------

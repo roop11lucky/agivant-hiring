@@ -125,6 +125,25 @@ def append_candidate(row):
 
 
 # -----------------------------
+# EXPERIENCE TYPE
+# (kept OUTSIDE the form on purpose: widgets inside st.form() do not
+#  trigger a rerun until the form is submitted, so a radio button
+#  inside the form can't conditionally reveal/hide other fields in
+#  real time. Placing it outside the form makes it rerun the script
+#  immediately on change, so the extra fields appear as soon as the
+#  user picks "Experienced".)
+# -----------------------------
+st.subheader("Professional Details")
+
+experience_type = st.radio(
+    "Fresher / Experienced *",
+    ["Fresher", "Experienced"],
+    horizontal=True,
+    key="experience_type",
+)
+
+
+# -----------------------------
 # FORM
 # -----------------------------
 with st.form("candidate_form", clear_on_submit=False):
@@ -178,14 +197,8 @@ with st.form("candidate_form", clear_on_submit=False):
         placeholder="Example: 8.2 CGPA or 78%",
     )
 
-    st.subheader("Professional Details")
-
-    experience_type = st.radio(
-        "Fresher / Experienced *",
-        ["Fresher", "Experienced"],
-        horizontal=True,
-    )
-
+    # Experience-related fields (conditionally shown based on the
+    # experience_type value chosen OUTSIDE the form above)
     total_experience = ""
     relevant_experience = ""
     current_company = ""
